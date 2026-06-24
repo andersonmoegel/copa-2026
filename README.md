@@ -13,13 +13,38 @@ O projeto reúne calendário, resultados, classificação, grupos, chaveamento, 
 
 ## 📸 Preview
 
-Adicione aqui screenshots da aplicação.
+### 🏠 Página Inicial
 
-```text
-/assets/screenshots/home.png
-/assets/screenshots/calendar.png
-/assets/screenshots/groups.png
-```
+![Home](assets/home.png)
+
+### 📅 Calendário de Jogos
+
+![Calendário](assets/calendar.png)
+
+### 🌎 Grupos
+
+![Grupos](assets/groups.png)
+
+### 📊 Classificação
+
+![Classificação](assets/class.png)
+
+### 🏆 Chaveamento
+
+![Chaveamento](assets/chav.png)
+
+### 🛡️ Seleções
+
+![Seleções](assets/times.png)
+
+### 🏟️ Estádios
+
+![Estádios](assets/locais.png)
+
+### 📰 Notícias
+
+![Notícias](assets/news.png)
+
 
 ---
 
