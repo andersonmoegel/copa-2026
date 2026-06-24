@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Copa do Mundo 2026 | Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">🏆</div>
+      <div>
+        <strong>Copa do Mundo</strong>
+        <span>2026</span>
+      </div>
+    </div>
+
+    <button class="nav active" data-section="overview">🏠 Visão geral</button>
+    <button class="nav" data-section="calendar">📅 Calendário</button>
+    <button class="nav" data-section="groups">🌐 Grupos</button>
+    <button class="nav" data-section="standings">📊 Classificação</button>
+    <button class="nav" data-section="bracket">🏆 Chaveamento</button>
+    <button class="nav" data-section="teams">🛡️ Seleções</button>
+    <button class="nav" data-section="stadiums">🏟️ Estádios</button>
+    <button class="nav" data-section="news">📰 Atualizações</button>
+
+    <div class="sidebar-card">
+      <small>Próxima atualização</small>
+      <strong id="lastUpdated">--</strong>
+      <button id="refreshBtn">Atualizar dados</button>
+    </div>
+
+    <div class="sidebar-stats">
+      <div><span id="statMatches">104</span><small>Jogos</small></div>
+      <div><span>48</span><small>Seleções</small></div>
+      <div><span>16</span><small>Estádios</small></div>
+    </div>
+  </aside>
+
+  <main class="app">
+    <header class="topbar">
+      <div>
+        <h1>Dashboard da Copa 2026</h1>
+        <p>Calendário, resultados, grupos, classificação, chaveamento, seleções e estádios.</p>
+      </div>
+
+      <div class="top-actions">
+        <input id="globalSearch" type="search" placeholder="Buscar seleção, estádio, cidade..." />
+        <select id="groupFilter">
+          <option value="">Todos os grupos</option>
+        </select>
+      </div>
+    </header>
+
+    <section id="overview" class="section active">
+      <div class="hero panel">
+        <div>
+          <span class="eyebrow">FIFA World Cup 2026</span>
+          <h2>11 de junho a 19 de julho</h2>
+          <p>Estados Unidos, México e Canadá</p>
+        </div>
+        <div class="hero-metrics">
+          <div><strong>104</strong><span>partidas</span></div>
+          <div><strong>12</strong><span>grupos</span></div>
+          <div><strong>32</strong><span>mata-mata</span></div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="panel span-2">
+          <div class="panel-title">
+            <h3>Jogos em destaque</h3>
+            <span id="todayLabel">Hoje</span>
+          </div>
+          <div id="featuredMatches" class="match-grid"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">
+            <h3>Estatísticas rápidas</h3>
+            <button class="ghost" data-section="teams">Ver seleções</button>
+          </div>
+          <div id="quickStats" class="quick-stats"></div>
+        </div>
+
+        <div class="panel span-2">
+          <div class="panel-title">
+            <h3>Grupos</h3>
+            <button class="ghost" data-section="groups">Ver todos</button>
+          </div>
+          <div id="groupsPreview" class="group-grid compact"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">
+            <h3>Últimas atualizações</h3>
+            <button class="ghost" data-section="news">Abrir</button>
+          </div>
+          <div id="newsPreview" class="news-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="calendar" class="section">
+      <div class="section-head">
+        <div>
+          <h2>Calendário e resultados</h2>
+          <p>Separado por data, com filtros por grupo e busca.</p>
+        </div>
+        <select id="stageFilter">
+          <option value="">Todas as fases</option>
+        </select>
+      </div>
+      <div id="calendarList" class="calendar-list"></div>
+    </section>
+
+    <section id="groups" class="section">
+      <div class="section-head">
+        <div>
+          <h2>Grupos</h2>
+          <p>Com bandeiras, código FIFA e metadados complementares.</p>
+        </div>
+      </div>
+      <div id="groupsGrid" class="group-grid"></div>
+    </section>
+
+    <section id="standings" class="section">
+      <div class="section-head">
+        <div>
+          <h2>Classificação</h2>
+          <p>Usa endpoint da API quando disponível. Se não vier, calcula pelos jogos com placar.</p>
+        </div>
+      </div>
+      <div id="standingsGrid" class="standings-grid"></div>
+    </section>
+
+    <section id="bracket" class="section">
+      <div class="section-head">
+        <div>
+          <h2>Chaveamento</h2>
+          <p>Mata-mata com placeholders quando a API ainda não resolve as equipes.</p>
+        </div>
+      </div>
+      <div id="bracketGrid" class="bracket-board"></div>
+    </section>
+
+    <section id="teams" class="section">
+      <div class="section-head">
+        <div>
+          <h2>Seleções</h2>
+          <p>Lista completa, com grupo, confederação, código FIFA e acesso ao elenco.</p>
+        </div>
+      </div>
+      <div id="teamsGrid" class="teams-grid"></div>
+    </section>
+
+    <section id="stadiums" class="section">
+      <div class="section-head">
+        <div>
+          <h2>Estádios</h2>
+          <p>Dados complementares locais para preencher lacunas da API.</p>
+        </div>
+      </div>
+      <div id="stadiumsGrid" class="stadium-grid"></div>
+    </section>
+
+    <section id="news" class="section">
+      <div class="section-head">
+        <div>
+          <h2>Atualizações</h2>
+          <p>Notícias e destaques importados como dados complementares.</p>
+        </div>
+      </div>
+      <div id="newsList" class="news-list full"></div>
+    </section>
+
+    <section id="details" class="section">
+      <button class="back" data-section="calendar">← Voltar</button>
+      <div id="detailsPanel" class="panel"></div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

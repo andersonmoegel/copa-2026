@@ -1,0 +1,252 @@
+:root{--bg:#07110d;--line:rgba(255,255,255,.14);--green:#10b957;--gold:#f5c542;--red:#ef4444;--text:#f7fff9;--muted:#aab8b0}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at top,#0d3b24 0,#07110d 45%,#030806 100%);color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif}.sidebar{position:fixed;inset:0 auto 0 0;width:250px;padding:18px 14px;background:linear-gradient(180deg,#06150f,#08100d);border-right:1px solid var(--line);overflow:auto}.brand{display:flex;gap:12px;align-items:center;margin-bottom:26px}.brand strong{display:block;font-size:20px}.brand small{font-size:25px;color:var(--green);font-weight:900}.trophy{font-size:42px}.side{width:100%;border:0;background:transparent;color:var(--text);padding:14px 16px;text-align:left;border-radius:10px;margin:3px 0;cursor:pointer;font-weight:700}.side:hover,.side.active{background:linear-gradient(90deg,#0aa04a,#087338);box-shadow:0 10px 22px rgba(16,185,87,.16)}.countdown-card{margin:26px 0 14px;padding:18px;border-radius:14px;background:linear-gradient(160deg,rgba(16,185,87,.28),rgba(255,255,255,.04));border:1px solid rgba(16,185,87,.25);text-align:center}.countdown-card span{font-size:12px;text-transform:uppercase}.countdown-card strong{display:block;color:var(--gold);margin:6px}.countdown{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;color:var(--green);font-size:22px}.countdown-label{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;color:var(--muted);font-size:11px;text-transform:uppercase}.mini-stat{border-top:1px solid var(--line);padding:16px 8px;color:var(--muted)}.mini-stat b{display:block;color:var(--gold);font-size:20px;margin-top:6px}.app{margin-left:250px;padding:18px}.topbar{display:flex;justify-content:space-between;gap:16px;align-items:center;padding:12px 0 18px}.topbar h1{margin:0;font-size:30px}.topbar p{margin:4px 0 0;color:var(--muted)}.top-actions{display:flex;gap:10px}input,select{background:rgba(255,255,255,.08);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:12px 14px;min-width:260px}button{font:inherit}#refreshBtn,.link-btn,.backBtn{border:1px solid rgba(16,185,87,.35);background:rgba(16,185,87,.14);color:#dfffea;border-radius:10px;padding:11px 14px;cursor:pointer;font-weight:800}.section{display:none}.section.active{display:block}.hero{min-height:220px;border-radius:20px;padding:34px;display:flex;justify-content:space-between;align-items:end;background:linear-gradient(rgba(3,8,6,.35),rgba(3,8,6,.72)),radial-gradient(circle at 50% 0,rgba(255,255,255,.18),transparent 45%),linear-gradient(135deg,#122b1e,#0a1410);border:1px solid var(--line);box-shadow:0 20px 55px rgba(0,0,0,.28)}.hero h2{font-size:36px;margin:0}.hero p{font-size:18px;color:#fff;margin:6px 0}.hero-stats{display:flex;gap:18px}.hero-stats span{display:flex;gap:8px;align-items:center;background:rgba(0,0,0,.28);border:1px solid var(--line);padding:14px 16px;border-radius:14px}.hero-stats b{font-size:20px}.hero-stats small{display:block;color:var(--muted)}.grid-main{display:grid;grid-template-columns:2fr 1.05fr 1.35fr;gap:16px;margin:16px 0}.panel{background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.04));border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 16px 40px rgba(0,0,0,.22)}.panel-title,.section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}.panel h3,.section h2{margin:0}.panel-title span{color:var(--muted)}.today-grid{display:grid;grid-template-columns:repeat(2,minmax(220px,1fr));gap:14px}.match-card,.card{background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:16px;padding:16px;cursor:pointer;transition:.15s}.match-card:hover,.card:hover{transform:translateY(-3px);border-color:rgba(16,185,87,.6)}.match-card.live{border-color:var(--red);box-shadow:0 0 0 1px rgba(239,68,68,.28),0 18px 35px rgba(239,68,68,.08)}.match-card.today{border-color:var(--gold)}.badge{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:900}.badge.live{background:var(--red)}.badge.time{background:rgba(255,255,255,.1)}.teams-line{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:20px 0}.team{text-align:center;min-width:82px}.flag{font-size:42px;display:block}.score{font-size:31px;font-weight:900}.venue{text-align:center;color:var(--muted);font-size:13px}.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}.card h3{margin:0 0 12px;color:#dfffea}.card p{color:var(--muted)}.groups-grid,.teams-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}.group-card{border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.06);padding:14px;border-top:3px solid var(--green)}.group-card h4{margin:0 0 10px}.group-card ol{margin:0;padding-left:22px;line-height:1.8}.team-pill{padding:14px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.06);cursor:pointer}.team-pill:hover{border-color:var(--green)}table{width:100%;border-collapse:collapse;margin:12px 0 24px;background:rgba(255,255,255,.04);border-radius:12px;overflow:hidden}th,td{padding:12px 10px;border-bottom:1px solid var(--line);text-align:center}th{font-size:12px;text-transform:uppercase;color:var(--muted);background:rgba(0,0,0,.22)}td:first-child,th:first-child{text-align:left}.rank{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--green);font-weight:900;color:#03210f}.knockout{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}.round{background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:16px;padding:14px}.round h3{margin-top:0;color:var(--gold)}.fixture-box{border:1px solid var(--line);border-radius:10px;padding:10px;margin:9px 0;background:rgba(0,0,0,.18)}.error{color:#fecaca;background:rgba(239,68,68,.13);border:1px solid rgba(239,68,68,.35);border-radius:12px;padding:12px}@media(max-width:1050px){.sidebar{position:static;width:auto}.app{margin-left:0}.grid-main{grid-template-columns:1fr}.topbar,.hero,.hero-stats{flex-direction:column;align-items:stretch}.today-grid{grid-template-columns:1fr}}@media(max-width:640px){.top-actions{flex-direction:column}input{min-width:0;width:100%}.app{padding:12px}.hero{padding:22px}.hero h2{font-size:28px}}
+
+/* Melhorias: calendário real, bandeiras, tradução e chaveamento */
+.filters{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}.calendar-head p{margin:6px 0 0;color:var(--muted)}.calendar-list{display:flex;flex-direction:column;gap:18px}.calendar-day{border:1px solid var(--line);border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.035));overflow:hidden;box-shadow:0 18px 42px rgba(0,0,0,.22)}.calendar-day.current-day{border-color:var(--gold);box-shadow:0 0 0 1px rgba(245,158,11,.25),0 18px 42px rgba(245,158,11,.08)}.day-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;background:linear-gradient(90deg,rgba(16,185,87,.22),rgba(245,158,11,.1));border-bottom:1px solid var(--line)}.day-header span{text-transform:capitalize;color:var(--muted);font-weight:700}.day-header h3{margin:2px 0 0;font-size:24px}.day-header b{background:rgba(0,0,0,.28);border:1px solid var(--line);border-radius:999px;padding:7px 12px;color:#fff}.timeline{display:flex;flex-direction:column}.calendar-match{display:grid;grid-template-columns:110px minmax(300px,1.4fr) minmax(220px,1fr) 110px;align-items:center;gap:16px;padding:15px 18px;border-bottom:1px solid var(--line);cursor:pointer;transition:.15s;background:rgba(0,0,0,.08)}.calendar-match:last-child{border-bottom:0}.calendar-match:hover{background:rgba(16,185,87,.12)}.calendar-match.live{background:rgba(239,68,68,.10);box-shadow:inset 4px 0 0 var(--red)}.cal-time b{font-size:20px;color:#fff}.cal-time span{display:block;color:var(--muted);font-size:12px;margin-top:2px}.cal-teams{display:grid;grid-template-columns:1fr 78px 1fr;align-items:center;gap:12px;font-weight:900}.cal-teams span{font-size:16px}.cal-teams span:last-child{text-align:right}.cal-teams strong{text-align:center;font-size:20px;color:var(--gold)}.cal-info span{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:4px 8px;margin:0 5px 5px 0;color:#dfffea;font-size:12px}.cal-info small{display:block;color:var(--muted);line-height:1.35}.cal-status{justify-self:end;border:1px solid var(--line);border-radius:999px;padding:7px 10px;color:var(--muted);font-weight:800;font-size:12px}.cal-status.on{color:#fff;background:var(--red);border-color:var(--red)}.match-top{display:flex;justify-content:space-between;align-items:center;gap:8px}.status-chip{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:4px 8px}.team b,.team-pill b{font-size:15px}.flag{filter:drop-shadow(0 8px 10px rgba(0,0,0,.25))}.knockout{display:flex;gap:18px;align-items:flex-start;overflow-x:auto;padding:8px 4px 18px;scroll-snap-type:x proximity}.bracket-round{min-width:285px;scroll-snap-align:start;position:relative}.bracket-round h3{text-align:center;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);padding:10px;border-radius:12px}.bracket-game{padding:0;overflow:hidden}.br-team{display:grid;grid-template-columns:34px 1fr 32px;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line)}.br-team:last-of-type{border-bottom:0}.br-team span{font-size:24px}.br-team b{font-size:14px}.br-team em{font-style:normal;text-align:center;color:var(--gold);font-weight:900}.bracket-game small{display:block;color:var(--muted);padding:9px 12px;background:rgba(0,0,0,.18)}
+@media(max-width:900px){.calendar-match{grid-template-columns:1fr;gap:10px}.cal-teams span:last-child{text-align:left}.cal-status{justify-self:start}.filters{justify-content:stretch}.filters select{width:100%;min-width:0}.knockout{display:grid;grid-template-columns:1fr;overflow:visible}}
+
+
+/* Bandeiras reais via FlagCDN: evita falhas de emoji no Windows/Chrome */
+.flag-img{
+  width:42px;
+  height:30px;
+  object-fit:cover;
+  border-radius:8px;
+  display:inline-block;
+  vertical-align:middle;
+  box-shadow:0 6px 16px rgba(0,0,0,.35);
+  border:1px solid rgba(255,255,255,.22);
+  background:rgba(255,255,255,.08);
+}
+.teams-line .flag-img{
+  width:64px;
+  height:46px;
+  border-radius:12px;
+}
+.cal-teams .flag-img,
+.group-card .flag-img,
+.team-pill .flag-img,
+.br-team .flag-img,
+table .flag-img{
+  width:26px;
+  height:18px;
+  border-radius:4px;
+  margin-right:7px;
+  box-shadow:0 3px 10px rgba(0,0,0,.28);
+}
+.flag-placeholder{
+  display:inline-flex;
+  width:26px;
+  height:18px;
+  align-items:center;
+  justify-content:center;
+  border-radius:4px;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.16);
+  font-size:13px;
+  margin-right:7px;
+}
+.teams-line .flag-placeholder{
+  width:64px;
+  height:46px;
+  border-radius:12px;
+  font-size:26px;
+  margin-right:0;
+}
+
+
+/* ===== Correção do calendário: sem colunas espremidas e sem texto cortado ===== */
+#schedule .section-head{
+  position:sticky;
+  top:0;
+  z-index:20;
+  padding:14px 0;
+  backdrop-filter:blur(14px);
+  background:linear-gradient(180deg,rgba(7,17,13,.96),rgba(7,17,13,.72));
+}
+
+.calendar-list{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(420px,1fr));
+  gap:18px;
+  align-items:start;
+}
+
+.calendar-day{
+  min-width:0;
+  overflow:hidden;
+}
+
+.day-header{
+  min-height:78px;
+}
+
+.timeline{
+  display:flex;
+  flex-direction:column;
+}
+
+.calendar-match{
+  grid-template-columns:72px minmax(0,1fr);
+  gap:12px;
+  padding:14px;
+  align-items:center;
+}
+
+.calendar-match .cal-info,
+.calendar-match .cal-status{
+  grid-column:2;
+}
+
+.cal-time{
+  align-self:start;
+}
+
+.cal-time b{
+  font-size:18px;
+  line-height:1;
+  white-space:nowrap;
+}
+
+.cal-scoreboard{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 64px minmax(0,1fr);
+  align-items:center;
+  gap:10px;
+  min-width:0;
+}
+
+.side-team{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  min-width:0;
+}
+
+.side-team.away{
+  justify-content:flex-end;
+  text-align:right;
+}
+
+.side-team span{
+  min-width:0;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:14px;
+  font-weight:900;
+  color:#f7fff9;
+  line-height:1.15;
+}
+
+.score-center{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:58px;
+  height:34px;
+  border-radius:999px;
+  background:rgba(245,197,66,.10);
+  border:1px solid rgba(245,197,66,.28);
+  color:var(--gold);
+  font-size:17px;
+  font-weight:1000;
+  white-space:nowrap;
+}
+
+.cal-info{
+  margin-top:-4px;
+}
+
+.cal-status{
+  justify-self:start;
+  margin-top:2px;
+}
+
+.cal-teams{
+  display:none;
+}
+
+.cal-scoreboard .flag-img{
+  flex:0 0 auto;
+  width:28px;
+  height:20px;
+  border-radius:5px;
+  margin-right:0;
+}
+
+.cal-scoreboard .flag-placeholder{
+  flex:0 0 auto;
+  margin-right:0;
+}
+
+.calendar-match.live .score-center{
+  background:rgba(239,68,68,.20);
+  border-color:rgba(239,68,68,.50);
+  color:#fff;
+}
+
+/* Em telas grandes, evita cartões finos demais */
+@media(min-width:1500px){
+  .calendar-list{
+    grid-template-columns:repeat(auto-fit,minmax(460px,1fr));
+  }
+}
+
+/* Em notebook/tela dividida, vira lista confortável */
+@media(max-width:1180px){
+  .calendar-list{
+    grid-template-columns:1fr;
+  }
+
+  .calendar-match{
+    grid-template-columns:82px minmax(0,1fr) 170px 105px;
+  }
+
+  .calendar-match .cal-info,
+  .calendar-match .cal-status{
+    grid-column:auto;
+  }
+
+  .cal-status{
+    justify-self:end;
+  }
+}
+
+@media(max-width:720px){
+  .sidebar{
+    position:static;
+    width:auto;
+  }
+
+  .app{
+    margin-left:0;
+    padding:12px;
+  }
+
+  .calendar-list{
+    grid-template-columns:1fr;
+  }
+
+  .calendar-match{
+    grid-template-columns:1fr;
+  }
+
+  .calendar-match .cal-info,
+  .calendar-match .cal-status{
+    grid-column:1;
+  }
+
+  .cal-scoreboard{
+    grid-template-columns:1fr 54px 1fr;
+  }
+
+  .score-center{
+    min-width:50px;
+    font-size:15px;
+  }
+
+  .side-team span{
+    font-size:13px;
+  }
+}
