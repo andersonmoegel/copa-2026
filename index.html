@@ -4,6 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Copa do Mundo 2026 | Dashboard</title>
+  <meta name="description" content="Dashboard interativo da Copa do Mundo 2026 com calendário, resultados, grupos, classificação, chaveamento, seleções, elencos, estádios e estatísticas." />
+  <meta name="keywords" content="Copa do Mundo 2026, tabela Copa 2026, jogos Copa 2026, Brasil Copa 2026, grupos Copa 2026" />
+  <meta name="theme-color" content="#06110d" />
+  <meta property="og:title" content="Copa do Mundo 2026 Dashboard" />
+  <meta property="og:description" content="Portal interativo com calendário, resultados, grupos, seleções, elencos e estádios da Copa 2026." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="assets/home.png" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="assets/home.png" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -24,6 +33,12 @@
     <button class="nav" data-section="teams">🛡️ Seleções</button>
     <button class="nav" data-section="stadiums">🏟️ Estádios</button>
     <button class="nav" data-section="news">📰 Atualizações</button>
+    <button class="nav" data-section="simulator">🎮 Simulador</button>
+    <button class="nav" data-section="ranking">🥇 Ranking FIFA</button>
+    <button class="nav" data-section="scorers">⚽ Artilharia</button>
+    <button class="nav" data-section="advanced">📈 Estatísticas</button>
+    <button class="nav" data-section="referees">🟨 Arbitragem</button>
+    <button class="nav" data-section="compare">🆚 Comparação</button>
 
     <div class="sidebar-card">
       <small>Próxima atualização</small>
@@ -175,12 +190,110 @@
       <div id="newsList" class="news-list full"></div>
     </section>
 
+
+    <section id="simulator" class="section">
+      <div class="section-head">
+        <div>
+          <h2>Simulador da Copa</h2>
+          <p>Monte confrontos e gere uma previsão simples baseada em ranking, grupo e desempenho.</p>
+        </div>
+      </div>
+      <div class="panel simulator-panel">
+        <div class="sim-controls">
+          <select id="simTeamA"></select>
+          <strong>vs</strong>
+          <select id="simTeamB"></select>
+          <button class="ghost" id="simulateBtn">Simular partida</button>
+        </div>
+        <div id="simulationResult" class="simulation-result"></div>
+      </div>
+    </section>
+
+    <section id="ranking" class="section">
+      <div class="section-head">
+        <div>
+          <h2>Ranking FIFA</h2>
+          <p>Ranking complementar usado para comparação e previsão de partidas.</p>
+        </div>
+      </div>
+      <div id="rankingGrid" class="ranking-grid"></div>
+    </section>
+
+    <section id="scorers" class="section">
+      <div class="section-head">
+        <div>
+          <h2>Artilharia</h2>
+          <p>Calculada a partir dos eventos da API quando disponíveis.</p>
+        </div>
+      </div>
+      <div id="scorersGrid" class="standings-grid"></div>
+    </section>
+
+    <section id="advanced" class="section">
+      <div class="section-head">
+        <div>
+          <h2>Estatísticas avançadas</h2>
+          <p>Indicadores consolidados, mapa de calor ilustrativo e leitura geral do torneio.</p>
+        </div>
+      </div>
+      <div id="advancedStats" class="advanced-grid"></div>
+      <div class="panel heatmap-panel">
+        <div class="panel-title">
+          <h3>Mapa de calor do torneio</h3>
+          <span>Distribuição visual por volume de jogos e gols</span>
+        </div>
+        <div id="heatmapPitch" class="pitch"></div>
+      </div>
+    </section>
+
+
+    <section id="referees" class="section">
+      <div class="section-head">
+        <div>
+          <h2>Arbitragem</h2>
+          <p>Dados complementares de árbitros, assistentes e VAR da Copa 2026.</p>
+        </div>
+      </div>
+      <div id="refereesGrid" class="referees-grid"></div>
+    </section>
+
+    <section id="compare" class="section">
+      <div class="section-head">
+        <div>
+          <h2>Comparação entre seleções</h2>
+          <p>Compare grupo, confederação, ranking, elenco e desempenho.</p>
+        </div>
+      </div>
+      <div class="panel compare-panel">
+        <div class="sim-controls">
+          <select id="compareTeamA"></select>
+          <strong>vs</strong>
+          <select id="compareTeamB"></select>
+          <button class="ghost" id="compareBtn">Comparar</button>
+        </div>
+        <div id="compareResult" class="compare-result"></div>
+      </div>
+    </section>
+
+
     <section id="details" class="section">
       <button class="back" data-section="calendar">← Voltar</button>
       <div id="detailsPanel" class="panel"></div>
     </section>
   </main>
 
+
+  <!-- Google Analytics opcional:
+  Substitua G-XXXXXXXXXX pelo seu ID e remova os comentários.
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXXXXXX');
+  </script>
+  -->
+  <script src="config.local.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -631,3 +631,369 @@ select option:hover{
   background:#123524;
   color:#ffffff;
 }
+
+
+/* Novos módulos: simulador, ranking, artilharia, estatísticas, comparação e recursos pro */
+.simulator-panel,.compare-panel{
+  display:grid;
+  gap:18px;
+}
+.sim-controls{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.sim-controls select{
+  flex:1;
+  min-width:220px;
+}
+.sim-controls strong{
+  color:var(--gold);
+}
+.prediction-card{
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:18px;
+  background:rgba(255,255,255,.045);
+}
+.versus-bar{
+  height:14px;
+  border-radius:999px;
+  background:rgba(255,255,255,.10);
+  border:1px solid var(--line);
+  overflow:hidden;
+  margin:16px 0;
+}
+.versus-bar span{
+  display:block;
+  height:100%;
+  background:linear-gradient(90deg,var(--green),var(--gold));
+}
+.ranking-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(270px,1fr));
+  gap:12px;
+}
+.ranking-card{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:12px;
+  background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.035));
+}
+.ranking-card small{
+  display:block;
+  color:var(--muted);
+  margin-top:4px;
+}
+.advanced-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
+  gap:14px;
+  margin-bottom:16px;
+}
+.heatmap-panel{
+  margin-top:16px;
+}
+.pitch{
+  position:relative;
+  height:360px;
+  border:2px solid rgba(255,255,255,.22);
+  border-radius:20px;
+  overflow:hidden;
+  background:
+    linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px),
+    linear-gradient(0deg,rgba(255,255,255,.08) 1px,transparent 1px),
+    radial-gradient(circle at center,rgba(255,255,255,.12),transparent 18%),
+    linear-gradient(135deg,#0a4628,#07351f);
+  background-size:80px 80px,80px 80px,100% 100%,100% 100%;
+}
+.pitch:before{
+  content:"";
+  position:absolute;
+  inset:20px;
+  border:1px solid rgba(255,255,255,.22);
+  border-radius:16px;
+}
+.pitch:after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:20px;
+  bottom:20px;
+  border-left:1px solid rgba(255,255,255,.22);
+}
+.heat-dot{
+  --size:50px;
+  position:absolute;
+  width:var(--size);
+  height:var(--size);
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  color:#041008;
+  font-weight:1000;
+  background:radial-gradient(circle,var(--gold),rgba(246,196,83,.12) 68%,transparent 70%);
+  filter:drop-shadow(0 0 16px rgba(246,196,83,.5));
+  z-index:2;
+}
+.compare-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+.tools-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:14px;
+}
+.tool-card{
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:16px;
+  background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.035));
+}
+.tool-card h3{
+  margin:0 0 8px;
+}
+.tool-card span{
+  display:inline-block;
+  border-radius:999px;
+  padding:5px 9px;
+  color:#041008;
+  background:var(--gold);
+  font-size:12px;
+  font-weight:1000;
+}
+.tool-card p{
+  color:var(--muted);
+  line-height:1.45;
+}
+@media(max-width:720px){
+  .compare-grid{grid-template-columns:1fr}
+  .pitch{height:280px}
+}
+
+
+/* Arbitragem e comentários Gemini */
+.referees-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+  gap:14px;
+}
+.ref-list{
+  display:grid;
+  gap:10px;
+}
+.ref-card{
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:12px;
+  background:rgba(255,255,255,.045);
+}
+.ref-card b{
+  display:block;
+  color:var(--text);
+}
+.ref-card span,
+.ref-card small{
+  display:block;
+  color:var(--muted);
+  margin-top:4px;
+}
+.ai-commentary{
+  margin-top:14px;
+  border:1px solid rgba(18,199,106,.35);
+  border-radius:16px;
+  padding:14px;
+  background:linear-gradient(180deg,rgba(18,199,106,.12),rgba(255,255,255,.035));
+}
+.ai-commentary h3{
+  margin:0 0 8px;
+  color:var(--green);
+}
+.ai-commentary p{
+  color:var(--text);
+  line-height:1.55;
+  margin:0;
+}
+.span-wide{
+  grid-column:1/-1;
+}
+
+
+/* Comentário Gemini expansível e sem corte inesperado */
+.ai-commentary{
+  overflow:visible;
+  height:auto;
+  max-height:none;
+}
+.ai-commentary h3{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.ai-commentary h3 small{
+  color:var(--muted);
+  font-size:12px;
+  font-weight:800;
+}
+.ai-commentary .ai-text{
+  position:relative;
+  overflow:hidden;
+  max-height:260px;
+  transition:max-height .25s ease;
+}
+.ai-commentary.expanded .ai-text{
+  max-height:none;
+}
+.ai-commentary.collapsed .ai-text::after{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:0;
+  height:70px;
+  background:linear-gradient(180deg,transparent,rgba(8,22,16,.96));
+  pointer-events:none;
+}
+.ai-commentary.expanded .ai-text::after{
+  display:none;
+}
+.ai-commentary p{
+  white-space:normal;
+  overflow-wrap:break-word;
+  word-break:normal;
+  line-height:1.62;
+  margin:0 0 12px;
+}
+.ai-commentary h4,
+.ai-commentary h3{
+  margin:12px 0 8px;
+}
+.ai-commentary strong{
+  color:var(--gold);
+}
+.ai-commentary em{
+  color:#d9ffe6;
+}
+.expand-ai{
+  margin-top:10px;
+}
+
+
+/* IA nos jogos, seleções, artilharia e estatísticas */
+.prediction-mini{
+  margin-top:14px;
+  border:1px solid rgba(246,196,83,.22);
+  border-radius:14px;
+  padding:10px;
+  background:rgba(246,196,83,.055);
+}
+.prediction-mini strong{
+  display:block;
+  color:var(--gold);
+  margin-bottom:8px;
+}
+.mini-bar{
+  display:flex;
+  height:9px;
+  border-radius:999px;
+  overflow:hidden;
+  background:rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.12);
+}
+.mini-bar span{background:var(--green)}
+.mini-bar em{background:var(--gold)}
+.mini-bar i{background:var(--blue)}
+.prediction-mini small{
+  display:block;
+  color:var(--muted);
+  margin-top:7px;
+  line-height:1.35;
+}
+.team-rating{
+  display:flex;
+  align-items:baseline;
+  gap:8px;
+  margin:10px 0;
+}
+.team-rating strong{
+  color:var(--gold);
+  font-size:34px;
+  line-height:1;
+}
+.team-rating span{
+  color:var(--muted);
+  font-weight:900;
+}
+.rating-bars{
+  display:grid;
+  gap:8px;
+  margin:12px 0;
+}
+.rating-bars div{
+  display:grid;
+  grid-template-columns:70px 1fr 34px;
+  gap:8px;
+  align-items:center;
+  color:var(--muted);
+  font-size:12px;
+}
+.rating-bars div::before{
+  content:"";
+  grid-column:2;
+  grid-row:1;
+  height:8px;
+  border-radius:999px;
+  background:rgba(255,255,255,.10);
+}
+.rating-bars b{
+  grid-column:2;
+  grid-row:1;
+  height:8px;
+  border-radius:999px;
+  background:linear-gradient(90deg,var(--green),var(--gold));
+}
+.rating-bars em{
+  font-style:normal;
+  color:var(--text);
+  font-weight:900;
+}
+.insight-list{
+  display:grid;
+  gap:8px;
+  margin:12px 0;
+}
+.insight-list p{
+  margin:0;
+  color:var(--muted);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:10px;
+  background:rgba(255,255,255,.04);
+}
+
+
+/* Correções finais de estabilidade e leitura */
+.error-card{
+  border-color:rgba(239,68,68,.45);
+}
+.ai-commentary{
+  width:100%;
+  max-width:100%;
+}
+.ai-commentary .ai-text{
+  max-height:360px;
+}
+.ai-commentary.expanded .ai-text{
+  max-height:none;
+}
+.dashboard-grid .panel{
+  min-height:0;
+}

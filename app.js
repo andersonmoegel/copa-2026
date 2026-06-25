@@ -1,5 +1,16 @@
-const API_KEY = 'zwc_free_a6e7a110921e7fc156194666';
-const BASE_URL = 'https://api.zafronix.com/fifa/worldcup/v1';
+const APP_CONFIG = window.APP_CONFIG || {};
+const API_KEY = APP_CONFIG.ZAFRONIX_API_KEY || '';
+const GEMINI_API_KEY = APP_CONFIG.GEMINI_API_KEY || '';
+const GEMINI_MODEL_CONFIG = (APP_CONFIG.GEMINI_MODEL || 'AUTO').trim();
+const GEMINI_PREFERRED_MODELS = (APP_CONFIG.GEMINI_PREFERRED_MODELS || [
+  'gemini-flash-latest',
+  'gemini-2.5-flash',
+  'gemini-2.0-flash',
+  'gemini-1.5-flash'
+]).map(m => String(m).replace(/^models\//,''));
+const BASE_URL = APP_CONFIG.ZAFRONIX_BASE_URL || 'https://api.zafronix.com/fifa/worldcup/v1';
+const GEMINI_BASE_URL = APP_CONFIG.GEMINI_BASE_URL || 'https://generativelanguage.googleapis.com/v1beta';
+let ACTIVE_GEMINI_MODEL = '';
 
 const groups = {
   A:['Mexico','South Africa','Korea Republic','Czechia'],
@@ -469,6 +480,111 @@ function renderPlayerChips(text, pos){
 
 
 
+
+const fifaRanking = {
+  'Argentina':1,'Brazil':5,'France':2,'England':4,'Portugal':6,'Netherlands':7,'Spain':8,'Belgium':9,'Germany':10,'Croatia':11,
+  'Morocco':12,'Colombia':13,'Mexico':14,'Senegal':15,'Uruguay':16,'USA':17,'Japan':18,'IR Iran':20,'Switzerland':21,
+  'Korea Republic':25,'Australia':27,'Algeria':28,'Egypt':29,'Canada':30,'Côte d\'Ivoire':33,'Panama':34,'Tunisia':45,
+  'Congo DR':46,'Uzbekistan':50,'Qatar':56,'Iraq':57,'South Africa':60,'Saudi Arabia':61,'Jordan':63,'Cabo Verde':67,
+  'Ghana':73,'Curaçao':82,'Haiti':83,'New Zealand':88,'Scotland':91,'Norway':33,'Austria':22,'Paraguay':39,
+  'Türkiye':26,'Czechia':40,'Bosnia and Herzegovina':68,'Sweden':24
+};
+
+const proFeatures = [
+  {title:'PWA instalável', status:'Ativo', text:'Manifest e service worker adicionados para instalação como app.'},
+  {title:'Notificações em tempo real', status:'Pronto', text:'Botão solicita permissão do navegador e testa notificação local.'},
+  {title:'SEO avançado', status:'Ativo', text:'Meta tags, Open Graph, sitemap e robots incluídos.'},
+  {title:'Google Analytics', status:'Preparado', text:'Bloco comentado no index.html. Basta inserir seu ID G-XXXXXXXXXX.'},
+  {title:'Previsão com IA', status:'Local', text:'Heurística local simula probabilidade usando ranking e desempenho.'},
+  {title:'Mapas de calor', status:'Visual', text:'Mapa ilustrativo por grupo baseado em volume de jogos e gols.'}
+];
+
+function allTeams(){
+  return Object.entries(groups).flatMap(([group,teams]) => teams.map(team => ({group, team})));
+}
+function teamGroup(team){
+  return allTeams().find(x => normalize(x.team) === normalize(team))?.group || '';
+}
+function rankingOf(team){
+  return fifaRanking[rawTeam(team)] || fifaRanking[teamPT(team)] || fifaRanking[meta(team).pt] || 99;
+}
+function teamMatches(team){
+  return state.matches.filter(m => normalize(getHome(m)) === normalize(team) || normalize(getAway(m)) === normalize(team));
+}
+function teamStats(team){
+  const rows = Object.values(state.standings || {}).flat();
+  const tableRow = rows.find(r => normalize(r.team) === normalize(team));
+  if(tableRow) return tableRow;
+  const t = {played:0, won:0, drawn:0, lost:0, goalsFor:0, goalsAgainst:0, goalDifference:0, points:0};
+  for(const m of teamMatches(team)){
+    if(m.homeScore == null || m.awayScore == null) continue;
+    const isHome = normalize(getHome(m)) === normalize(team);
+    const gf = Number(isHome ? m.homeScore : m.awayScore);
+    const ga = Number(isHome ? m.awayScore : m.homeScore);
+    t.played++; t.goalsFor += gf; t.goalsAgainst += ga;
+    if(gf > ga){ t.won++; t.points += 3; }
+    else if(gf < ga){ t.lost++; }
+    else { t.drawn++; t.points++; }
+  }
+  t.goalDifference = t.goalsFor - t.goalsAgainst;
+  return t;
+}
+function prediction(teamA, teamB){
+  const rankA = rankingOf(teamA), rankB = rankingOf(teamB);
+  const statsA = teamStats(teamA), statsB = teamStats(teamB);
+  let scoreA = (120 - rankA) + (statsA.points || 0) * 4 + (statsA.goalDifference || 0) * 2 + squadCount(squadFor(teamA)) / 3;
+  let scoreB = (120 - rankB) + (statsB.points || 0) * 4 + (statsB.goalDifference || 0) * 2 + squadCount(squadFor(teamB)) / 3;
+  if(teamGroup(teamA) && teamGroup(teamA) === teamGroup(teamB)){ scoreA += 1; scoreB += 1; }
+  const total = Math.max(1, scoreA + scoreB);
+  const pa = Math.round((scoreA / total) * 100);
+  const pb = 100 - pa;
+  return {pa, pb, favorite: pa >= pb ? teamA : teamB};
+}
+
+
+const referees = [
+  {conf:'AFC', name:'Omar Al Ali', country:'United Arab Emirates', role:'Árbitro', assistants:'Mohamed Al-Hammadi'},
+  {conf:'AFC', name:'Abdulrahman Al-Jassim', country:'Qatar', role:'Árbitro', assistants:'Taleb Al-Marri, Saud Al-Maqaleh'},
+  {conf:'AFC', name:'Khalid Al-Turais', country:'Saudi Arabia', role:'Árbitro', assistants:'Mohammed Al-Bakry'},
+  {conf:'AFC', name:'Alireza Faghani', country:'Australia', role:'Árbitro', assistants:'George Lakrindis, James Lindsay'},
+  {conf:'AFC', name:'Ma Ning', country:'China', role:'Árbitro', assistants:'Zhou Fei'},
+  {conf:'CAF', name:'Mustapha Ghorbal', country:'Algeria', role:'Árbitro', assistants:'Mokrane Gourari, Abbes Akram Zerhouni'},
+  {conf:'CAF', name:'Amin Omar', country:'Egypt', role:'Árbitro', assistants:'Mahmoud Abouregal, Ahmed Hossam Taha'},
+  {conf:'CAF', name:'Abongile Tom', country:'South Africa', role:'Árbitro', assistants:'Zakhele Siwela'},
+  {conf:'CONCACAF', name:'Iván Barton', country:'El Salvador', role:'Árbitro', assistants:'David Morán, Henry Pupiro'},
+  {conf:'CONCACAF', name:'Ismail Elfath', country:'United States', role:'Árbitro', assistants:'Corey Parker, Kyle Atkins'},
+  {conf:'CONCACAF', name:'Katia Itzel García', country:'Mexico', role:'Árbitro', assistants:'Sandra Ramírez'},
+  {conf:'CONCACAF', name:'Tori Penso', country:'United States', role:'Árbitro', assistants:'Kathryn Nesbitt, Brooke Mayo'},
+  {conf:'CONMEBOL', name:'Raphael Claus', country:'Brazil', role:'Árbitro', assistants:'Rodrigo Figueiredo'},
+  {conf:'CONMEBOL', name:'Wilton Sampaio', country:'Brazil', role:'Árbitro', assistants:'Bruno Boschilia, Bruno Pires'},
+  {conf:'CONMEBOL', name:'Yael Falcón', country:'Argentina', role:'Árbitro', assistants:'Facundo Rodríguez, Maximiliano Del Yesso'},
+  {conf:'CONMEBOL', name:'Facundo Tello', country:'Argentina', role:'Árbitro', assistants:'Juan Pablo Belatti, Gabriel Chade'},
+  {conf:'UEFA', name:'Szymon Marciniak', country:'Poland', role:'Árbitro', assistants:'Tomasz Listkiewicz, Adam Kupsik'},
+  {conf:'UEFA', name:'Michael Oliver', country:'England', role:'Árbitro', assistants:'Stuart Burt, James Mainwaring'},
+  {conf:'UEFA', name:'Anthony Taylor', country:'England', role:'Árbitro', assistants:'Gary Beswick, Adam Nunn'},
+  {conf:'UEFA', name:'Clément Turpin', country:'France', role:'Árbitro', assistants:'Nicolas Danos, Benjamin Pagès'},
+  {conf:'UEFA', name:'Felix Zwayer', country:'Germany', role:'Árbitro', assistants:'Robert Kempter, Christian Dietz'},
+  {conf:'OFC', name:'Campbell-Kirk Kawana-Waugh', country:'New Zealand', role:'Árbitro', assistants:'Isaac Trevis'},
+  {conf:'VAR', name:'Khamis Al-Marri', country:'Qatar', role:'VAR', assistants:'AFC'},
+  {conf:'VAR', name:'Armando Villarreal', country:'United States', role:'VAR', assistants:'CONCACAF'},
+  {conf:'VAR', name:'Nicolás Gallo', country:'Colombia', role:'VAR', assistants:'CONMEBOL'},
+  {conf:'VAR', name:'Rodolpho Toski', country:'Brazil', role:'VAR', assistants:'CONMEBOL'},
+  {conf:'VAR', name:'Jérôme Brisard', country:'France', role:'VAR', assistants:'UEFA'},
+  {conf:'VAR', name:'Bastian Dankert', country:'Germany', role:'VAR', assistants:'UEFA'}
+];
+
+const matchOfficialsFallback = {
+  'Argentina|Austria': {referee:'Amin Omar', country:'Egypt', assistants:'Mahmoud Abou El Regal, Ahmed Hossam Taha', fourth:'Alejandro Hernández', var:'Não informado'},
+  'Türkiye|Paraguay': {referee:'Iván Barton', country:'El Salvador', assistants:'David Morán, Henry Pupiro', fourth:'Oshane Nation', var:'Khamis Al-Marri'}
+};
+
+function officialForMatch(m){
+  const home = getHome(m), away = getAway(m);
+  const direct = m.referee || m.officials?.referee || m.matchOfficials?.referee;
+  if(direct) return {referee: direct, country: m.officials?.country || '', assistants: m.officials?.assistants || '', fourth: m.officials?.fourth || '', var: m.officials?.var || ''};
+  return matchOfficialsFallback[`${home}|${away}`] || matchOfficialsFallback[`${away}|${home}`] || null;
+}
+
 const state = {
   matches: [],
   standings: null,
@@ -481,6 +597,41 @@ const state = {
 
 const $ = id => document.getElementById(id);
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function safeCall(label, fn, fallback = ''){
+  try{
+    return fn();
+  }catch(err){
+    console.error(`[${label}]`, err);
+    return fallback;
+  }
+}
+
+function safeNumber(value, fallback = 0){
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+
+function formatGeminiMarkdown(text){
+  const safe = esc(text || '');
+  return safe
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/(^|\s)\*(.*?)\*(?=\s|$)/g, '$1<em>$2</em>')
+    .replace(/^###\s*(.*)$/gm, '<h4>$1</h4>')
+    .replace(/^##\s*(.*)$/gm, '<h3>$1</h3>')
+    .replace(/^#\s*(.*)$/gm, '<h3>$1</h3>')
+    .replace(/\n{2,}/g, '</p><p>')
+    .replace(/\n/g, '<br>');
+}
+
+window.toggleGeminiComment = function(button){
+  const box = button.closest('.ai-commentary');
+  if(!box) return;
+  box.classList.toggle('expanded');
+  button.textContent = box.classList.contains('expanded') ? 'Ver menos' : 'Ver análise completa';
+};
+
 const rawTeam = t => typeof t === 'object' ? (t.label || t.name || t.team || t.slug || '') : (t || '');
 const normalize = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
 
@@ -552,12 +703,41 @@ $('globalSearch').addEventListener('input', e => { state.search = e.target.value
 $('groupFilter').addEventListener('change', e => { state.group = e.target.value; renderAll(); });
 $('stageFilter').addEventListener('change', e => { state.stage = e.target.value; renderCalendar(); });
 
+$('simulateBtn')?.addEventListener('click', renderSimulation);
+$('compareBtn')?.addEventListener('click', renderComparisonResult);
+
+
 function showSection(id){
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav').forEach(n => n.classList.toggle('active', n.dataset.section === id));
   const sec = $(id);
   if(sec) sec.classList.add('active');
   window.scrollTo({top:0,behavior:'smooth'});
+}
+
+
+function buildFallbackMatches(){
+  const matches = [];
+  let no = 1;
+  const stadiumCycle = stadiums.map(s => s.name);
+  for(const [group,teams] of Object.entries(groups)){
+    for(let i=0;i<teams.length;i+=2){
+      const day = 11 + Math.floor(no/4);
+      matches.push({
+        id:`fallback-${no}`,
+        matchNo:no,
+        homeTeam:teams[i],
+        awayTeam:teams[i+1] || teams[0],
+        kickoffUtc:`2026-06-${String(day).padStart(2,'0')}T${String(16 + (no%4)*2).padStart(2,'0')}:00:00Z`,
+        stage:`group_${group.toLowerCase()}`,
+        group,
+        status:'scheduled',
+        stadium:stadiumCycle[no % stadiumCycle.length]
+      });
+      no++;
+    }
+  }
+  return matches;
 }
 
 async function init(){
@@ -569,7 +749,7 @@ async function init(){
     state.health.push({name:'Calendário/resultados', status:'ok', info:`${state.matches.length} jogos carregados da API`});
   }catch(err){
     state.health.push({name:'Calendário/resultados', status:'err', info:'API não retornou calendário'});
-    state.matches = [];
+    state.matches = buildFallbackMatches();
   }
 
   try{
@@ -603,15 +783,31 @@ function setLoading(){
 }
 
 function renderAll(){
-  renderFilters();
-  renderOverview();
-  renderCalendar();
-  renderGroups();
-  renderStandings();
-  renderBracket();
-  renderTeams();
-  renderStadiums();
-  renderNews();
+  const renderSteps = [
+    ['Filtros', renderFilters],
+    ['Visão geral', renderOverview],
+    ['Calendário', renderCalendar],
+    ['Grupos', renderGroups],
+    ['Classificação', renderStandings],
+    ['Chaveamento', renderBracket],
+    ['Seleções', renderTeams],
+    ['Estádios', renderStadiums],
+    ['Notícias', renderNews],
+    ['Simulador', renderSimulator],
+    ['Ranking', renderRanking],
+    ['Artilharia', renderScorers],
+    ['Estatísticas', renderAdvancedStats],
+    ['Comparação', renderComparison],
+    ['Arbitragem', renderReferees]
+  ];
+
+  for(const [label, fn] of renderSteps){
+    try{
+      if(typeof fn === 'function') fn();
+    }catch(err){
+      console.error(`Erro ao renderizar ${label}:`, err);
+    }
+  }
 }
 
 function filteredMatches(){
@@ -633,35 +829,59 @@ function renderFilters(){
 }
 
 function renderOverview(){
-  const today = state.matches.filter(isToday);
-  const live = state.matches.filter(m => statusClass(m) === 'live');
-  const next = state.matches.filter(m => (dateObj(m)?.getTime() || 0) >= Date.now()).slice(0,4);
-  const featured = live.length ? live : (today.length ? today : next.length ? next : state.matches.slice(0,4));
-  $('todayLabel').textContent = live.length ? `${live.length} ao vivo` : today.length ? `${today.length} hoje` : 'Próximos jogos';
-  $('featuredMatches').innerHTML = featured.map(matchCard).join('') || '<div class="empty"><strong>Sem partidas carregadas.</strong><br>Verifique a chave/API.</div>';
-  $('groupsPreview').innerHTML = Object.entries(groups).slice(0,6).map(groupCard).join('');
+  const baseList = safeCall('filteredMatches overview', () => filteredMatches(), state.matches || []);
+  const today = baseList.filter(isToday);
+  const live = baseList.filter(m => statusClass(m) === 'live');
+  const next = baseList.filter(m => (dateObj(m)?.getTime() || 0) >= Date.now()).slice(0,4);
+  const featured = live.length ? live : (today.length ? today : next.length ? next : baseList.slice(0,4));
+
+  $('todayLabel').textContent = state.group ? `Grupo ${state.group}` : (live.length ? `${live.length} ao vivo` : today.length ? `${today.length} hoje` : 'Próximos jogos');
+  $('featuredMatches').innerHTML = featured.length
+    ? featured.map(m => safeCall('matchCard overview', () => matchCard(m), '')).join('')
+    : '<div class="empty"><strong>Nenhum jogo encontrado.</strong><br>Limpe os filtros para ver mais partidas.</div>';
+
+  const groupEntries = state.group ? Object.entries(groups).filter(([g]) => g === state.group) : Object.entries(groups).slice(0,6);
+  $('groupsPreview').innerHTML = groupEntries.map(groupCard).join('');
   $('newsPreview').innerHTML = news.slice(0,3).map(newsItem).join('');
   $('quickStats').innerHTML = renderQuickStats();
 }
 
 function matchCard(m){
-  const home = getHome(m), away = getAway(m);
-  const st = stadiumInfo(m.stadium);
-  const meta = [niceStage(stageOf(m)), groupOf(m) ? `Grupo ${groupOf(m)}` : '', m.stadium || st?.name || '', fullDate(m)].filter(Boolean);
-  return `<article class="match-card ${statusClass(m)} ${isToday(m)?'today':''}" data-match-id="${esc(matchId(m))}">
-    <div class="match-top">
-      <span class="badge ${statusClass(m)}">${esc(statusOf(m))}</span>
-      <span class="match-stage">Jogo ${esc(matchNo(m))}</span>
-    </div>
-    <div class="scoreboard">
-      <div class="team">${flag(home)}<span title="${esc(teamPT(home))}">${esc(teamPT(home))}</span></div>
-      <div class="score">${esc(score(m))}</div>
-      <div class="team away"><span title="${esc(teamPT(away))}">${esc(teamPT(away))}</span>${flag(away)}</div>
-    </div>
-    <div class="match-meta">${meta.map(x => `<span>${esc(x)}</span>`).join('')}</div>
-  </article>`;
-}
+  try{
+    const home = getHome(m), away = getAway(m);
+    const st = stadiumInfo(m.stadium);
+    const meta = [niceStage(stageOf(m)), groupOf(m) ? `Grupo ${groupOf(m)}` : '', m.stadium || st?.name || '', fullDate(m)].filter(Boolean);
+    const probs = safeCall('probabilidade do jogo', () => matchProbabilities(m), null);
 
+    return `<article class="match-card ${statusClass(m)} ${isToday(m)?'today':''}" data-match-id="${esc(matchId(m))}">
+      <div class="match-top">
+        <span class="badge ${statusClass(m)}">${esc(statusOf(m))}</span>
+        <span class="match-stage">Jogo ${esc(matchNo(m))}</span>
+      </div>
+      <div class="scoreboard">
+        <div class="team">${flag(home)}<span title="${esc(teamPT(home))}">${esc(teamPT(home))}</span></div>
+        <div class="score">${esc(score(m))}</div>
+        <div class="team away"><span title="${esc(teamPT(away))}">${esc(teamPT(away))}</span>${flag(away)}</div>
+      </div>
+      ${probs ? `<div class="prediction-mini">
+        <strong>IA: ${esc(probs.score)}</strong>
+        <div class="mini-bar">
+          <span style="width:${probs.homeWin}%"></span>
+          <em style="width:${probs.draw}%"></em>
+          <i style="width:${probs.awayWin}%"></i>
+        </div>
+        <small>${esc(teamPT(home))} ${probs.homeWin}% • Empate ${probs.draw}% • ${esc(teamPT(away))} ${probs.awayWin}%</small>
+      </div>` : ''}
+      <div class="match-meta">${meta.map(x => `<span>${esc(x)}</span>`).join('')}</div>
+    </article>`;
+  }catch(err){
+    console.error('Erro no card de jogo:', err, m);
+    return `<article class="match-card error-card">
+      <div class="match-top"><span class="badge next">Jogo</span></div>
+      <div class="empty">Não foi possível renderizar este jogo.</div>
+    </article>`;
+  }
+}
 
 function renderQuickStats(){
   const played = state.matches.filter(m => m.homeScore != null && m.awayScore != null).length;
@@ -720,7 +940,10 @@ function groupCard([g,teams]){
     <ol>${teams.map(t => `<li>${flag(t)}<b>${esc(teamPT(t))}</b><small>${esc(meta(t).fifa)}</small></li>`).join('')}</ol>
   </div>`;
 }
-function renderGroups(){ $('groupsGrid').innerHTML = Object.entries(groups).map(groupCard).join(''); }
+function renderGroups(){
+  const entries = state.group ? Object.entries(groups).filter(([g]) => g === state.group) : Object.entries(groups);
+  $('groupsGrid').innerHTML = entries.map(groupCard).join('');
+}
 
 function computeStandings(matches){
   const table = {};
@@ -750,7 +973,8 @@ function computeStandings(matches){
 
 function renderStandings(){
   const data = state.standings || computeStandings(state.matches);
-  $('standingsGrid').innerHTML = Object.entries(data).map(([g,rows]) => `<div class="group-card">
+  const entries = state.group ? Object.entries(data).filter(([g]) => g === state.group) : Object.entries(data);
+  $('standingsGrid').innerHTML = entries.map(([g,rows]) => `<div class="group-card">
     <h3>Grupo ${esc(g)}</h3>
     <div class="table-wrap"><table>
       <thead><tr><th>Seleção</th><th>J</th><th>V</th><th>E</th><th>D</th><th>GP</th><th>GC</th><th>SG</th><th>PTS</th></tr></thead>
@@ -789,19 +1013,33 @@ function renderBracket(){
 }
 
 function renderTeams(){
-  const list = Object.entries(groups).flatMap(([group,teams]) => teams.map(team => ({group,team})));
+  let list = Object.entries(groups).flatMap(([group,teams]) => teams.map(team => ({group,team})));
+  if(state.group) list = list.filter(x => x.group === state.group);
   const q = normalize(state.search);
   const filtered = q ? list.filter(x => normalize(`${x.team} ${teamPT(x.team)} ${meta(x.team).fifa} ${meta(x.team).conf}`).includes(q)) : list;
-  $('teamsGrid').innerHTML = filtered.map(({group,team}) => `<article class="team-card" data-team="${esc(team)}">
-    <div class="team-card-head">${flag(team)}<h3>${esc(teamPT(team))}</h3></div>
-    <div class="meta-list">
-      <span><b>Grupo:</b> ${esc(group)}</span>
-      <span><b>Código FIFA:</b> ${esc(meta(team).fifa)}</span>
-      <span><b>Confederação:</b> ${esc(meta(team).conf)}</span>
-      <span><b>Elenco:</b> ${squadCount(squadFor(team)) || 'Não carregado'} jogadores</span>
-    </div>
-    <button class="ghost" onclick="loadRoster('${esc(team)}')">Ver elenco completo</button>
-  </article>`).join('');
+  $('teamsGrid').innerHTML = filtered.map(({group,team}) => {
+    const rating = teamAIRating(team);
+    return `<article class="team-card" data-team="${esc(team)}">
+      <div class="team-card-head">${flag(team)}<h3>${esc(teamPT(team))}</h3></div>
+      <div class="team-rating">
+        <strong>${rating.final}</strong>
+        <span>Nota IA</span>
+      </div>
+      <div class="rating-bars">
+        <div><span>Ataque</span><b style="width:${rating.attack*10}%"></b><em>${rating.attack}</em></div>
+        <div><span>Defesa</span><b style="width:${rating.defense*10}%"></b><em>${rating.defense}</em></div>
+        <div><span>Elenco</span><b style="width:${rating.depth*10}%"></b><em>${rating.depth}</em></div>
+      </div>
+      <div class="meta-list">
+        <span><b>Grupo:</b> ${esc(group)}</span>
+        <span><b>Código FIFA:</b> ${esc(meta(team).fifa)}</span>
+        <span><b>Confederação:</b> ${esc(meta(team).conf)}</span>
+        <span><b>Elenco:</b> ${squadCount(squadFor(team)) || 'Não carregado'} jogadores</span>
+        <span><b>Destaques:</b> ${esc(teamStars(team).slice(0,4).join(', ') || 'Aguardando dados')}</span>
+      </div>
+      <button class="ghost" onclick="loadRoster('${esc(team)}')">Ver elenco completo</button>
+    </article>`;
+  }).join('');
 }
 
 function renderStadiums(){
@@ -825,6 +1063,437 @@ function renderNews(){
   $('newsList').innerHTML = news.map(newsItem).join('');
 }
 
+
+function renderSelectOptions(selectId, selected){
+  const el = $(selectId);
+  if(!el) return;
+  const options = allTeams().map(({team}) => `<option value="${esc(team)}" ${selected===team?'selected':''}>${esc(teamPT(team))}</option>`).join('');
+  el.innerHTML = options;
+}
+
+
+function isAutoGeminiModel(){
+  return !GEMINI_MODEL_CONFIG || GEMINI_MODEL_CONFIG.toUpperCase() === 'AUTO';
+}
+
+function sleep(ms){
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function parseGeminiError(status, text){
+  let message = text || '';
+  try{
+    const json = JSON.parse(text);
+    message = json.error?.message || json.message || text;
+  }catch{
+    /* mantém texto original */
+  }
+  return `Gemini HTTP ${status}${message ? ' - ' + message : ''}`;
+}
+
+function isRetryableGeminiStatus(status){
+  return [408, 409, 429, 500, 502, 503, 504].includes(Number(status));
+}
+
+function buildLocalCommentary(promptContext){
+  const {timeA, timeB} = promptContext;
+  const rankA = Number(timeA.ranking || 99);
+  const rankB = Number(timeB.ranking || 99);
+  const pointsA = Number(timeA.pontos || 0);
+  const pointsB = Number(timeB.pontos || 0);
+  const saldoA = Number(timeA.saldo || 0);
+  const saldoB = Number(timeB.saldo || 0);
+
+  const scoreA = (120 - rankA) + pointsA * 4 + saldoA * 2;
+  const scoreB = (120 - rankB) + pointsB * 4 + saldoB * 2;
+  const favorite = scoreA >= scoreB ? timeA : timeB;
+  const outsider = scoreA >= scoreB ? timeB : timeA;
+
+  const attackA = timeA.elenco?.ataque ? timeA.elenco.ataque.split(',').slice(0,4).map(x => x.trim()).join(', ') : 'ataque não informado';
+  const attackB = timeB.elenco?.ataque ? timeB.elenco.ataque.split(',').slice(0,4).map(x => x.trim()).join(', ') : 'ataque não informado';
+
+  return `Análise local gerada porque o Gemini ficou indisponível no momento.
+
+${favorite.selecao} chega ligeiramente à frente pelo conjunto de ranking, desempenho e saldo. A seleção aparece no ranking FIFA #${favorite.ranking}, enquanto ${outsider.selecao} aparece em #${outsider.ranking}.
+
+No contexto do torneio, ${timeA.selecao} soma ${timeA.pontos} ponto(s), saldo ${timeA.saldo} e ${timeA.golsPro} gol(s) marcado(s). ${timeB.selecao} soma ${timeB.pontos} ponto(s), saldo ${timeB.saldo} e ${timeB.golsPro} gol(s) marcado(s).
+
+No ataque, ${timeA.selecao} tem nomes como ${attackA}. Já ${timeB.selecao} conta com ${attackB}.
+
+Leitura de jogo: se ${favorite.selecao} controlar o meio-campo e aproveitar as transições, tende a ser mais perigosa. Mas ${outsider.selecao} pode equilibrar se for compacta defensivamente e acelerar pelos lados.`;
+}
+
+async function listGeminiModels(){
+  const res = await fetch(`${GEMINI_BASE_URL}/models`, {
+    method:'GET',
+    headers:{'X-goog-api-key': GEMINI_API_KEY}
+  });
+  if(!res.ok){
+    const text = await res.text().catch(() => '');
+    throw new Error(parseGeminiError(res.status, text));
+  }
+  const data = await res.json();
+  return (data.models || [])
+    .filter(m => (m.supportedGenerationMethods || []).includes('generateContent'))
+    .map(m => ({
+      name: String(m.name || '').replace(/^models\//,''),
+      displayName: m.displayName || '',
+      raw: m
+    }))
+    .filter(m => m.name);
+}
+
+async function getGeminiModelCandidates(){
+  if(!GEMINI_API_KEY){
+    throw new Error('Gemini não configurado. Preencha GEMINI_API_KEY no .env e rode node tools/env-to-config.js.');
+  }
+
+  const preferred = GEMINI_PREFERRED_MODELS.map(m => String(m).replace(/^models\//,''));
+
+  if(!isAutoGeminiModel()){
+    const fixed = GEMINI_MODEL_CONFIG.replace(/^models\//,'');
+    return [fixed, ...preferred.filter(m => m !== fixed)];
+  }
+
+  try{
+    const available = await listGeminiModels();
+    const names = available.map(m => m.name);
+    const ordered = [];
+
+    for(const preferredModel of preferred){
+      const found = names.find(name => name === preferredModel || name.includes(preferredModel));
+      if(found && !ordered.includes(found)) ordered.push(found);
+    }
+
+    for(const name of names){
+      if(/flash/i.test(name) && !ordered.includes(name)) ordered.push(name);
+    }
+
+    for(const name of names){
+      if(!ordered.includes(name)) ordered.push(name);
+    }
+
+    return ordered.length ? ordered : preferred;
+  }catch(err){
+    // Se a listagem falhar, ainda tenta a lista configurada.
+    return preferred;
+  }
+}
+
+async function generateWithGeminiModel(model, prompt, attempt = 1){
+  const res = await fetch(`${GEMINI_BASE_URL}/models/${model}:generateContent`, {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'X-goog-api-key': GEMINI_API_KEY
+    },
+    body:JSON.stringify({
+      contents:[{parts:[{text:prompt}]}],
+      generationConfig:{
+        temperature:0.8,
+        maxOutputTokens:1800
+      }
+    })
+  });
+
+  if(!res.ok){
+    const errorText = await res.text().catch(() => '');
+    const err = new Error(parseGeminiError(res.status, errorText));
+    err.status = res.status;
+    err.model = model;
+    err.retryable = isRetryableGeminiStatus(res.status);
+    err.attempt = attempt;
+    throw err;
+  }
+
+  const data = await res.json();
+  const text = data.candidates?.[0]?.content?.parts?.map(p => p.text).join('');
+  if(!text) throw new Error(`Modelo ${model} não retornou texto.`);
+  return {text, model};
+}
+
+async function callGemini(prompt, localContext = null){
+  if(!GEMINI_API_KEY){
+    return {
+      text:'Gemini não configurado. Adicione GEMINI_API_KEY no .env e gere o config.local.js para ativar comentários com IA.',
+      model:'local',
+      fallback:true
+    };
+  }
+
+  const models = await getGeminiModelCandidates();
+  const errors = [];
+
+  for(const model of models){
+    for(let attempt = 1; attempt <= 2; attempt++){
+      try{
+        const result = await generateWithGeminiModel(model, prompt, attempt);
+        ACTIVE_GEMINI_MODEL = result.model;
+        return {text:result.text, model:result.model, fallback:false};
+      }catch(err){
+        errors.push(`${model} tentativa ${attempt}: ${err.message}`);
+        if(!err.retryable) break;
+        await sleep(900 * attempt);
+      }
+    }
+  }
+
+  const localText = localContext
+    ? buildLocalCommentary(localContext)
+    : 'Gemini indisponível no momento. Tente novamente em instantes.';
+
+  return {
+    text: localText,
+    model:'análise local',
+    fallback:true,
+    error: errors.slice(-3).join(' | ')
+  };
+}
+
+function compactTeamContext(team){
+  const st = teamStats(team);
+  const sq = squadFor(team);
+  return {
+    selecao: teamPT(team),
+    grupo: teamGroup(team),
+    ranking: rankingOf(team),
+    confederacao: meta(team).conf,
+    pontos: st.points || 0,
+    jogos: st.played || 0,
+    saldo: st.goalDifference || 0,
+    golsPro: st.goalsFor || 0,
+    golsContra: st.goalsAgainst || 0,
+    elenco: sq ? {goleiros:sq.gk, defensores:sq.df, meio:sq.mf, ataque:sq.fw} : null
+  };
+}
+
+async function renderGeminiCommentary(type, a, b){
+  const target = type === 'compare' ? $('geminiCompare') : $('geminiSimulation');
+  if(!target) return;
+  target.innerHTML = '<div class="loading">Gemini está analisando como comentarista e selecionando o melhor modelo disponível...</div>';
+  const context = {timeA:compactTeamContext(a), timeB:compactTeamContext(b)};
+  const prompt = `Você é um comentarista esportivo profissional brasileiro.
+
+Produza uma análise completa em português do Brasil, com linguagem jornalística e empolgante.
+
+Estrutura obrigatória:
+1. Resumo do confronto
+2. Pontos fortes da primeira seleção
+3. Pontos fortes da segunda seleção
+4. Jogadores de destaque
+5. Estratégia provável
+6. Prognóstico final
+
+Use de 4 a 8 parágrafos.
+Não invente placares oficiais.
+Não interrompa a resposta no meio.
+Baseie-se apenas nestes dados: ${JSON.stringify(context, null, 2)}`;
+  const result = await callGemini(prompt, context);
+  const title = result.fallback ? 'Análise local' : 'Comentário Gemini';
+  const detail = result.fallback ? 'fallback automático' : result.model;
+  target.innerHTML = `<div class="ai-commentary collapsed">
+    <h3>${title} <small>• ${esc(detail)}</small></h3>
+    <div class="ai-text"><p>${formatGeminiMarkdown(result.text)}</p></div>
+    <button class="ghost expand-ai" onclick="toggleGeminiComment(this)">Ver análise completa</button>
+    ${result.error ? `<small style="display:block;margin-top:10px;color:var(--muted)">Último erro técnico: ${esc(result.error)}</small>` : ''}
+  </div>`;
+}
+
+function renderSimulator(){
+  renderSelectOptions('simTeamA', $('simTeamA')?.value || 'Brazil');
+  renderSelectOptions('simTeamB', $('simTeamB')?.value || 'France');
+  if(!$('simulationResult')?.innerHTML) renderSimulation();
+}
+
+function renderSimulation(){
+  const a = $('simTeamA')?.value || 'Brazil';
+  const b = $('simTeamB')?.value || 'France';
+  const p = prediction(a,b);
+  $('simulationResult').innerHTML = `<div class="prediction-card">
+    <div class="scoreboard">
+      <div class="team">${flag(a)}<span>${esc(teamPT(a))}</span></div>
+      <div class="score">${p.pa}%</div>
+      <div class="team away"><span>${esc(teamPT(b))}</span>${flag(b)}</div>
+    </div>
+    <div class="versus-bar"><span style="width:${p.pa}%"></span></div>
+    <p><b>Favorito:</b> ${esc(teamPT(p.favorite))}</p>
+    <small>Previsão local baseada em ranking, desempenho no torneio e elenco. O comentário abaixo usa Gemini quando configurado.</small>
+    <div style="margin-top:14px"><button class="ghost" onclick="renderGeminiCommentary('sim', '${esc(a)}', '${esc(b)}')">Gerar comentário com Gemini</button></div>
+    <div id="geminiSimulation"></div>
+  </div>`;
+}
+function renderRanking(){
+  const list = allTeams()
+    .map(x => ({...x, rank: rankingOf(x.team)}))
+    .sort((a,b) => a.rank - b.rank);
+  $('rankingGrid').innerHTML = list.map((x,i) => `<article class="ranking-card">
+    <span class="rank">${i+1}</span>
+    ${flag(x.team)}
+    <div><b>${esc(teamPT(x.team))}</b><small>FIFA #${esc(x.rank)} • Grupo ${esc(x.group)} • ${esc(meta(x.team).conf)}</small></div>
+  </article>`).join('');
+}
+
+function extractScorers(){
+  const scorers = {};
+  for(const m of state.matches){
+    for(const ev of (m.events || [])){
+      const txt = normalize(`${ev.type || ''} ${ev.event || ''}`);
+      if(!txt.includes('goal') && !txt.includes('gol')) continue;
+      const name = ev.player || ev.playerName || 'Jogador não informado';
+      const team = ev.team || '';
+      const key = `${name}|${team}`;
+      scorers[key] ||= {name, team, goals:0};
+      scorers[key].goals++;
+    }
+  }
+  return Object.values(scorers).sort((a,b) => b.goals - a.goals);
+}
+
+function renderScorers(){
+  const apiScorers = extractScorers();
+  const source = apiScorers.length ? 'Eventos da API' : 'Dados complementares via web';
+  const scorers = apiScorers.length ? apiScorers : webTopScorers.map(s => ({name:s.player, team:s.team, goals:s.goals, note:s.note, source:s.source}));
+  $('scorersGrid').innerHTML = `<div class="group-card"><h3>Artilharia</h3><p style="color:var(--muted)">Fonte: ${esc(source)}. Quando a API retornar eventos de gols, ela tem prioridade automática.</p><div class="table-wrap"><table>
+    <thead><tr><th>Jogador</th><th>Seleção</th><th>Gols</th><th>Nota</th></tr></thead>
+    <tbody>${scorers.map(s => `<tr><td><b>${esc(s.name)}</b></td><td>${flag(s.team)} ${esc(teamPT(s.team))}</td><td><b>${s.goals}</b></td><td>${esc(s.note || s.source || '')}</td></tr>`).join('')}</tbody>
+  </table></div></div>
+  <div class="group-card"><h3>Leitura IA da artilharia</h3><div class="news-list">
+    <div class="news-item"><h4>Favoritos ao topo</h4><p>Messi, Mbappé, Ronaldo, Haaland e Kane combinam histórico, protagonismo e volume ofensivo.</p></div>
+    <div class="news-item"><h4>Critério automático</h4><p>O portal prioriza gols vindos dos eventos da API; se a API não trouxer eventos, usa base complementar atualizável.</p></div>
+  </div></div>`;
+}
+
+function renderAdvancedStats(){
+  const played = state.matches.filter(m => m.homeScore != null && m.awayScore != null);
+  const goals = played.reduce((acc,m) => acc + Number(m.homeScore || 0) + Number(m.awayScore || 0),0);
+  const live = state.matches.filter(m => statusClass(m)==='live').length;
+  const avg = played.length ? (goals / played.length).toFixed(2).replace('.',',') : '0,00';
+  const scorers = extractScorers().length || webTopScorers.length;
+  const officials = referees.filter(r => r.role === 'Árbitro').length;
+  const varCount = referees.filter(r => r.role === 'VAR').length;
+  const cards = [
+    ['Jogos disputados', played.length],
+    ['Gols marcados', goals],
+    ['Média de gols', avg],
+    ['Jogos ao vivo', live],
+    ['Artilheiros mapeados', scorers],
+    ['Árbitros centrais', officials],
+    ['VARs mapeados', varCount],
+    ['Estádios', 16]
+  ];
+  $('advancedStats').innerHTML = cards.map(([label,value]) => `<div class="quick-stat-card"><strong>${value}</strong><span>${label}</span></div>`).join('')
+    + `<div class="panel span-wide"><h3>Insights IA do torneio</h3><div class="insight-list">${localTournamentInsights().map(i => `<p>🤖 ${esc(i)}</p>`).join('')}</div><button class="ghost" onclick="generateTournamentInsights()">Gerar análise Gemini das estatísticas</button><div id="geminiStats"></div></div>`;
+  renderHeatmap();
+}
+function renderHeatmap(){
+  const pitch = $('heatmapPitch');
+  if(!pitch) return;
+  const groupStats = Object.keys(groups).map((g,i) => {
+    const ms = state.matches.filter(m => groupOf(m) === g);
+    const goals = ms.reduce((acc,m) => acc + Number(m.homeScore || 0) + Number(m.awayScore || 0),0);
+    return {g, intensity: Math.min(100, 20 + ms.length * 8 + goals * 3), x: 8 + (i%4)*28, y: 12 + Math.floor(i/4)*28};
+  });
+  pitch.innerHTML = groupStats.map(s => `<div class="heat-dot" style="left:${s.x}%;top:${s.y}%;--size:${s.intensity}px"><b>${s.g}</b></div>`).join('');
+}
+
+function renderComparison(){
+  renderSelectOptions('compareTeamA', $('compareTeamA')?.value || 'Brazil');
+  renderSelectOptions('compareTeamB', $('compareTeamB')?.value || 'Argentina');
+  if(!$('compareResult')?.innerHTML) renderComparisonResult();
+}
+
+function renderComparisonResult(){
+  const a = $('compareTeamA')?.value || 'Brazil';
+  const b = $('compareTeamB')?.value || 'Argentina';
+  const sa = teamStats(a), sb = teamStats(b);
+  const p = prediction(a,b);
+  $('compareResult').innerHTML = `<div class="compare-grid">
+    ${compareTeamCard(a,sa,p.pa)}
+    ${compareTeamCard(b,sb,p.pb)}
+  </div>
+  <div style="margin-top:14px"><button class="ghost" onclick="renderGeminiCommentary('compare', '${esc(a)}', '${esc(b)}')">Comentar comparação com Gemini</button></div>
+  <div id="geminiCompare"></div>`;
+}
+
+function compareTeamCard(team, stats, prob){
+  const rating = teamAIRating(team);
+  return `<article class="team-card">
+    <div class="team-card-head">${flag(team)}<h3>${esc(teamPT(team))}</h3></div>
+    <div class="team-rating"><strong>${rating.final}</strong><span>Nota IA</span></div>
+    <div class="rating-bars">
+      <div><span>Ataque</span><b style="width:${rating.attack*10}%"></b><em>${rating.attack}</em></div>
+      <div><span>Defesa</span><b style="width:${rating.defense*10}%"></b><em>${rating.defense}</em></div>
+      <div><span>Meio</span><b style="width:${rating.midfield*10}%"></b><em>${rating.midfield}</em></div>
+      <div><span>Momento</span><b style="width:${rating.moment*10}%"></b><em>${rating.moment}</em></div>
+    </div>
+    <div class="meta-list">
+      <span><b>Grupo:</b> ${esc(teamGroup(team))}</span>
+      <span><b>Ranking FIFA:</b> #${esc(rankingOf(team))}</span>
+      <span><b>Confederação:</b> ${esc(meta(team).conf)}</span>
+      <span><b>Pontos:</b> ${stats.points || 0}</span>
+      <span><b>Saldo:</b> ${stats.goalDifference || 0}</span>
+      <span><b>Elenco:</b> ${squadCount(squadFor(team)) || 0} jogadores</span>
+      <span><b>Jogadores-chave:</b> ${esc(teamStars(team).slice(0,5).join(', ') || 'Não informado')}</span>
+      <span><b>Probabilidade:</b> ${prob}%</span>
+    </div>
+  </article>`;
+}
+
+function renderProTools(){
+  $('proToolsGrid').innerHTML = proFeatures.map(f => `<article class="tool-card">
+    <h3>${esc(f.title)}</h3>
+    <span>${esc(f.status)}</span>
+    <p>${esc(f.text)}</p>
+    ${f.title.includes('Notificações') ? '<button class="ghost" onclick="requestNotification()">Testar notificação</button>' : ''}
+  </article>`).join('');
+}
+
+window.requestNotification = async function(){
+  if(!('Notification' in window)){
+    alert('Seu navegador não suporta notificações.');
+    return;
+  }
+  const permission = await Notification.requestPermission();
+  if(permission === 'granted'){
+    new Notification('Copa 2026', {body:'Notificações ativadas para próximos jogos!', icon:'assets/home.png'});
+  }
+};
+
+
+
+function renderReferees(){
+  const byConf = referees.reduce((acc,r) => {
+    (acc[r.conf] ||= []).push(r);
+    return acc;
+  }, {});
+  const el = $('refereesGrid');
+  if(!el) return;
+  el.innerHTML = Object.entries(byConf).map(([conf,items]) => `<div class="group-card">
+    <h3>${esc(conf)}</h3>
+    <div class="ref-list">${items.map(r => `<article class="ref-card">
+      <b>${esc(r.name)}</b>
+      <span>${esc(r.role)} • ${esc(r.country)}</span>
+      <small>${esc(r.assistants || '')}</small>
+    </article>`).join('')}</div>
+  </div>`).join('');
+}
+
+
+window.generateTournamentInsights = async function(){
+  const target = $('geminiStats');
+  if(!target) return;
+  target.innerHTML = '<div class="loading">Gemini analisando estatísticas do torneio...</div>';
+  const context = {
+    resumo: localTournamentInsights(),
+    jogos: state.matches.length,
+    topScorers: webTopScorers,
+    melhoresNotas: allTeams().map(({team}) => ({selecao:teamPT(team), nota:teamAIRating(team).final, ranking:rankingOf(team)})).sort((a,b)=>b.nota-a.nota).slice(0,8)
+  };
+  const prompt = `Você é analista esportivo de dados. Gere uma análise em português, objetiva e profissional, com 5 insights sobre a Copa 2026 usando estes dados: ${JSON.stringify(context,null,2)}`;
+  const result = await callGemini(prompt, {timeA:compactTeamContext('Brazil'), timeB:compactTeamContext('France')});
+  target.innerHTML = `<div class="ai-commentary expanded"><h3>${result.fallback ? 'Análise local' : 'Comentário Gemini'} <small>• ${esc(result.model)}</small></h3><div class="ai-text"><p>${formatGeminiMarkdown(result.text)}</p></div></div>`;
+};
+
 window.showDetails = function(id){
   const m = state.matches.find(x => matchId(x) === id);
   if(!m) return;
@@ -841,6 +1510,7 @@ window.showDetails = function(id){
       <div class="match-meta" style="margin-top:20px">
         <span>${esc(statusOf(m))}</span><span>${esc(fullDate(m))}</span><span>${esc(niceStage(stageOf(m)))}</span>${groupOf(m)?`<span>Grupo ${esc(groupOf(m))}</span>`:''}
       </div>
+      ${officialForMatch(m) ? `<div class="news-item" style="margin-top:16px"><h4>Arbitragem</h4><p><b>Árbitro:</b> ${esc(officialForMatch(m).referee)} ${officialForMatch(m).country ? '• '+esc(officialForMatch(m).country) : ''}</p><p><b>Assistentes:</b> ${esc(officialForMatch(m).assistants || 'Não informado')}</p><p><b>Quarto árbitro:</b> ${esc(officialForMatch(m).fourth || 'Não informado')}</p><p><b>VAR:</b> ${esc(officialForMatch(m).var || 'Não informado')}</p></div>` : `<div class="news-item" style="margin-top:16px"><h4>Arbitragem</h4><p>Dados de arbitragem específicos deste jogo ainda não foram encontrados na API. Consulte a aba Arbitragem para a lista complementar.</p></div>`}
       <h3>Eventos</h3>
       ${(m.events||[]).length ? `<div class="news-list">${m.events.map(ev => `<div class="news-item"><b>${esc(ev.minute ?? '')}' ${esc(ev.type || 'Evento')}</b><p>${esc(ev.player || ev.team || '')}</p></div>`).join('')}</div>` : '<div class="empty"><strong>Sem eventos detalhados.</strong><br>A API não retornou gols/cartões para este jogo.</div>'}
     </div>
@@ -883,5 +1553,12 @@ window.loadRoster = async function(team){
       <div class="empty"><strong>Elenco ainda não disponível.</strong><br>Adicione esta seleção no objeto <code>squads</code> do app.js ou rode um scraper complementar.</div>`;
   }
 };
+
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js').catch(() => {});
+  });
+}
 
 init();
